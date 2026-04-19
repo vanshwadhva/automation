@@ -1,0 +1,138 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- 0. Global Safety Net ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- 1. Master Primitives ---
+    function isSignedIn() { return request.auth != null; }
+    function isEmailVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+
+    // --- 2. Entity Validation Blueprints ---
+
+    function isValidUser(data) {
+      // Identity Integrity & Type Safety
+      return data.keys().hasAll(['displayName', 'email', 'mailboxConnected']) &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.email is string && data.email.size() <= 150 &&
+             data.email == request.auth.token.email && // Self-assigned identity guard
+             data.mailboxConnected is bool;
+    }
+
+    function isValidContactList(data) {
+      return data.keys().hasAll(['name', 'userId', 'createdAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.userId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    function isValidContact(data) {
+      return data.keys().hasAll(['email', 'listId', 'userId']) &&
+             data.email is string && data.email.size() <= 150 &&
+             data.listId is string &&
+             data.userId == request.auth.uid;
+    }
+
+    function isValidTemplate(data) {
+      return data.keys().hasAll(['name', 'subject', 'body', 'userId', 'createdAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.subject is string && data.subject.size() <= 200 &&
+             data.body is string && data.body.size() <= 10000 &&
+             data.userId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    function isValidCampaign(data) {
+      return data.keys().hasAll(['name', 'templateId', 'listId', 'userId', 'status']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.templateId is string &&
+             data.listId is string &&
+             data.userId == request.auth.uid &&
+             data.status in ['draft', 'scheduled', 'sending', 'completed', 'cancelled'];
+    }
+
+    function isValidEmailLog(data) {
+      return data.keys().hasAll(['campaignId', 'recipientEmail', 'status', 'userId']) &&
+             data.campaignId is string &&
+             data.recipientEmail is string &&
+             data.status in ['queued', 'sent', 'opened', 'clicked', 'failed'] &&
+             data.userId == request.auth.uid;
+    }
+
+    // --- 3. Resource Rules ---
+
+    // USERS
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().email == existing().email; // Email is immutable
+    }
+
+    // CONTACT LISTS
+    match /contactLists/{listId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isEmailVerified() && isValidId(listId) && isValidContactList(incoming());
+      allow update: if isOwner(existing().userId) && isValidContactList(incoming()) &&
+                    incoming().userId == existing().userId;
+      allow delete: if isOwner(existing().userId);
+
+      // CONTACTS (Subcollection)
+      match /contacts/{contactId} {
+        // Master Gate: Verify parent list ownership
+        function parentOwner() {
+          return get(/databases/$(database)/documents/contactLists/$(listId)).data.userId;
+        }
+        
+        allow read: if isSignedIn() && parentOwner() == request.auth.uid;
+        allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+        allow create: if isEmailVerified() && isValidId(contactId) && isValidContact(incoming()) && parentOwner() == request.auth.uid;
+        allow update: if isOwner(parentOwner()) && isValidContact(incoming()) && incoming().userId == existing().userId;
+        allow delete: if isOwner(parentOwner());
+      }
+    }
+
+    // TEMPLATES
+    match /templates/{templateId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isEmailVerified() && isValidId(templateId) && isValidTemplate(incoming());
+      allow update: if isOwner(existing().userId) && isValidTemplate(incoming()) && incoming().userId == existing().userId;
+      allow delete: if isOwner(existing().userId);
+    }
+
+    // CAMPAIGNS
+    match /campaigns/{campaignId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isEmailVerified() && isValidId(campaignId) && isValidCampaign(incoming());
+      
+      allow update: if isOwner(existing().userId) && isValidCampaign(incoming()) && 
+                    incoming().userId == existing().userId &&
+                    // Terminal State Locking
+                    (existing().status != 'completed' || incoming().status == 'completed');
+
+      allow delete: if isOwner(existing().userId) && existing().status == 'draft';
+
+      // EMAIL LOGS (Subcollection)
+      match /logs/{logId} {
+        function parentCampaignOwner() {
+          return get(/databases/$(database)/documents/campaigns/$(campaignId)).data.userId;
+        }
+
+        allow read: if isSignedIn() && parentCampaignOwner() == request.auth.uid;
+        allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+        allow create: if isEmailVerified() && isValidId(logId) && isValidEmailLog(incoming()) && parentCampaignOwner() == request.auth.uid;
+        allow update: if isOwner(parentCampaignOwner()) && isValidEmailLog(incoming()) && incoming().userId == existing().userId;
+      }
+    }
+  }
+}

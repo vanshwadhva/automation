@@ -1,0 +1,97 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "User profile and mailbox status",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "mailboxConnected": { "type": "boolean" },
+        "lastActive": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ContactList": {
+      "title": "Contact List",
+      "type": "object",
+      "description": "A group of contacts for campaigns",
+      "properties": {
+        "name": { "type": "string" },
+        "userId": { "type": "string" },
+        "contactCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "userId"]
+    },
+    "Contact": {
+      "title": "Contact",
+      "type": "object",
+      "description": "Recipient details",
+      "properties": {
+        "email": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "variables": { "type": "object" },
+        "listId": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["email", "listId", "userId"]
+    },
+    "Template": {
+      "title": "Email Template",
+      "type": "object",
+      "description": "Reusable email content with placeholders",
+      "properties": {
+        "name": { "type": "string" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "subject", "body", "userId"]
+    },
+    "Campaign": {
+      "title": "Campaign",
+      "type": "object",
+      "description": "An email outreach initiative",
+      "properties": {
+        "name": { "type": "string" },
+        "templateId": { "type": "string" },
+        "listId": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "scheduled", "sending", "completed", "cancelled"] },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "totalEmails": { "type": "integer" },
+        "sentCount": { "type": "integer" },
+        "openCount": { "type": "integer" },
+        "clickCount": { "type": "integer" },
+        "abTestEnabled": { "type": "boolean" }
+      },
+      "required": ["name", "templateId", "listId", "userId", "status"]
+    },
+    "EmailLog": {
+      "title": "Email Log",
+      "type": "object",
+      "description": "Tracking for a single email delivery",
+      "properties": {
+        "campaignId": { "type": "string" },
+        "contactId": { "type": "string" },
+        "recipientEmail": { "type": "string" },
+        "status": { "type": "string", "enum": ["queued", "sent", "opened", "clicked", "failed"] },
+        "sentAt": { "type": "string", "format": "date-time" },
+        "openedAt": { "type": "string", "format": "date-time" },
+        "clickedAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "Global user profiles" },
+    "/contactLists/{listId}": { "schema": "ContactList", "description": "Collections of contacts" },
+    "/contactLists/{listId}/contacts/{contactId}": { "schema": "Contact", "description": "Individual contacts within a list" },
+    "/templates/{templateId}": { "schema": "Template", "description": "Email templates" },
+    "/campaigns/{campaignId}": { "schema": "Campaign", "description": "Marketing campaigns" },
+    "/campaigns/{campaignId}/logs/{logId}": { "schema": "EmailLog", "description": "Individual email tracking logs" }
+  }
+}
