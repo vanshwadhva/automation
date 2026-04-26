@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Svashasan - Web App Tool</title>
+    <link rel="icon" type="image/png" href="2.png" sizes="32x32">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: [
+                            'system-ui',
+                            '-apple-system',
+                            'BlinkMacSystemFont',
+                            'Segoe UI',
+                            'Roboto',
+                            'Helvetica Neue',
+                            'Arial',
+                            'Noto Sans',
+                            'sans-serif',
+                            'Apple Color Emoji',
+                            'Segoe UI Emoji',
+                            'Segoe UI Symbol',
+                            'Noto Color Emoji'
+                        ],
+                        calibri: ['Calibri', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        /* Natural page scrolling like the original index.html */
+        html,
+        body {
+            overflow-x: hidden;
+            height: auto;
+            background-color: #f9fafb;
+        }
+
+        /* Full-screen mobile menu styles */
+        #mobile-menu {
+            transition: opacity 0.3s ease-in-out;
+            padding-left: 2.5rem;
+        }
+
+        #mobile-menu ul {
+            text-align: left;
+            width: 100%;
+        }
+
+        /* Layout Container */
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* App Viewport - Fixed height or dynamic based on content */
+        .app-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #fff;
+            margin-top: 72px;
+            /* Fixed Header Height offset */
+            min-height: calc(100vh - 72px);
+            /* Ensures content fills the fold before footer */
+            width: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: calc(100vh - 72px);
+            /* Makes the app itself occupy the full screen */
+            border: none;
+            display: block;
+        }
+
+        /* Custom Loader Overlay */
+        #loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-800">
+
+    <div class="page-wrapper">
+        <!-- Header Section (Exactly as Uploaded) -->
+        <header
+            class="fixed top-0 left-0 right-0 z-50 bg-white bg-opacity-80 backdrop-blur-md py-4 shadow-sm border-b border-gray-100">
+            <div class="container mx-auto flex items-center justify-between px-4 sm:px-6">
+                <!-- Logo -->
+                <a href="https://svashasan.com/" class="flex-shrink-0">
+                    <img src="2.png" alt="Svashasan Logo" class="h-10 w-auto object-contain">
+                </a>
+                <nav class="hidden md:flex flex-grow justify-center">
+                    <ul class="flex space-x-6 text-gray-600 font-medium">
+                        <li><a href="https://svashasan.com/#about"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">About Us</a>
+                        </li>
+                        <li><a href="https://svashasan.com/#features"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">Features</a>
+                        </li>
+                        <li><a href="https://svashasan.com/#contact"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">Contact</a></li>
+                        <li><a href="https://svashasan.com/blog"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">Blog</a></li>
+                        <li><a href="https://svashasan.com/survey"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">Survey</a></li>
+                        <li><a href="https://svashasan.com/developer-platform"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">API</a></li>
+                        <li><a href="https://svashasan.com/model-performance"
+                                class="hover:text-gray-900 hover:font-bold transition-all duration-200">Models</a></li>
+                    </ul>
+                </nav>
+                <div class="flex items-center space-x-4 header-right-group ml-auto">
+                    <a href="https://svashasan.com/support"
+                        class="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </a>
+                    <a href="https://svashasan.com/profile"
+                        class="text-gray-600 hover:text-gray-900 transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="10" r="3" />
+                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
+                        </svg>
+                    </a>
+                    <button id="menu-button"
+                        class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none z-60 relative">
+                        <svg id="menu-open-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" x2="20" y1="12" y2="12"></line>
+                            <line x1="4" x2="20" y1="6" y2="6"></line>
+                            <line x1="4" x2="20" y1="18" y2="18"></line>
+                        </svg>
+                        <svg id="menu-close-icon" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 hidden" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Navigation Overlay (Exactly as Uploaded) -->
+        <div id="mobile-menu"
+            class="hidden fixed inset-0 bg-white z-40 flex flex-col justify-center items-start opacity-0">
+            <ul class="flex flex-col space-y-8 text-gray-800 text-3xl font-semibold">
+                <li><a href="https://svashasan.com/#about">About Us</a></li>
+                <li><a href="https://svashasan.com/#features">Features</a></li>
+                <li><a href="https://svashasan.com/#contact">Contact</a></li>
+                <li><a href="https://svashasan.com/blog">Blog</a></li>
+                <li><a href="https://svashasan.com/survey">Survey</a></li>
+                <li><a href="https://svashasan.com/developer-platform">API</a></li>
+                <li><a href="https://svashasan.com/model-performance">Models</a></li>
+            </ul>
+        </div>
+
+        <!-- Tool Integration Section -->
+        <main class="app-container">
+            <div id="loading-overlay">
+                <div class="spinner"></div>
+                <p class="mt-4 text-gray-500 font-medium">Loading Svashasan App...</p>
+            </div>
+            <iframe id="main-app-frame" src="https://69ede304e975142d74df15b5--merry-swan-15ad64.netlify.app/"
+                title="Svashasan Tool"
+                allow="geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media; usb"
+                sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+                onload="onAppLoaded()"></iframe>
+        </main>
+
+        <!-- Footer (Exactly as Uploaded - Now at absolute bottom of page) -->
+        <footer class="bg-gray-200 text-gray-900 py-6 text-center border-t border-gray-300">
+            <div class="container mx-auto px-4 md:px-6">
+                <p>2026 &copy; Svashasan Labs All Rights Reserved.</p>
+                <p class="mt-2 text-sm space-x-2">
+                    <a href="https://svashasan.com/privacy-policy" class="hover:underline">Privacy Policy</a>
+                    <span>|</span>
+                    <a href="https://svashasan.com/terms-of-use." class="hover:underline">Terms & Conditions</a>
+                    <span>|</span>
+                    <a href="https://svashasan.com/cookie-policy" class="hover:underline">Cookie Policy</a>
+                    <span>|</span>
+                    <a href="https://svashasan.com/careers" class="hover:underline">Careers</a>
+                </p>
+
+                <!-- Social Media Icons -->
+                <div class="flex justify-center items-center space-x-6 mt-4">
+                    <a href="https://www.linkedin.com/company/svashasan/"
+                        class="text-gray-400 hover:text-blue-700 transition-colors p-2 rounded-full" title="LinkedIn">
+                        <img src="https://svashasan.com/linkedin.svg" alt="LinkedIn" class="w-6 h-6"
+                            onerror="this.src='https://cdn-icons-png.flaticon.com/512/174/174857.png'">
+                    </a>
+                    <a href="https://x.com/Svashasann"
+                        class="text-gray-400 hover:text-black transition-colors p-2 rounded-full" title="X (Twitter)">
+                        <img src="https://svashasan.com/twitter.svg" alt="Twitter" class="w-6 h-6"
+                            onerror="this.src='https://cdn-icons-png.flaticon.com/512/733/733579.png'">
+                    </a>
+                    <a href="https://www.youtube.com/@SvashasanLabs"
+                        class="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-full" title="YouTube">
+                        <img src="https://svashasan.com/youtube.svg" alt="YouTube" class="w-6 h-6"
+                            onerror="this.src='https://cdn-icons-png.flaticon.com/512/1384/1384060.png'">
+                    </a>
+                    <a href="https://github.com/Svashasan"
+                        class="text-gray-400 hover:text-black transition-colors p-2 rounded-full" title="GitHub">
+                        <img src="https://svashasan.com/github.svg" alt="GitHub" class="w-6 h-6"
+                            onerror="this.src='https://cdn-icons-png.flaticon.com/512/733/733553.png'">
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // App Load Handler
+        function onAppLoaded() {
+            const loader = document.getElementById('loading-overlay');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuButton = document.getElementById('menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuOpenIcon = document.getElementById('menu-open-icon');
+            const menuCloseIcon = document.getElementById('menu-close-icon');
+
+            const toggleMenu = () => {
+                const isMenuOpen = !mobileMenu.classList.contains('hidden');
+                if (isMenuOpen) {
+                    mobileMenu.classList.add('opacity-0');
+                    document.body.style.overflow = '';
+                    menuOpenIcon.classList.remove('hidden');
+                    menuCloseIcon.classList.add('hidden');
+                    setTimeout(() => mobileMenu.classList.add('hidden'), 300);
+                } else {
+                    mobileMenu.classList.remove('hidden');
+                    menuOpenIcon.classList.add('hidden');
+                    menuCloseIcon.classList.remove('hidden');
+                    setTimeout(() => {
+                        mobileMenu.classList.remove('opacity-0');
+                        document.body.style.overflow = 'hidden';
+                    }, 10);
+                }
+            };
+
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', toggleMenu);
+            }
+            setTimeout(onAppLoaded, 5000);
+        });
+    </script>
+</body>
+
+</html>
